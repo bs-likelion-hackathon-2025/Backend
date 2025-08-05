@@ -7,7 +7,7 @@ build/
 # 환경변수
 .env
 src/main/resources/application-prod.yml
-# ✅ 개발용 application.properties는 Git에 포함 권장
+# 개발용 application.properties는 Git에 포함 권장
 #IDE 설정 파일
 .idea/
 *.iml
