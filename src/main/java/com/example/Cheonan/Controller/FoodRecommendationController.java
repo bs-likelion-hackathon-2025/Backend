@@ -37,29 +37,41 @@ public class FoodRecommendationController {
     })
     @PostMapping("/recommend")
     public ResponseEntity<?> recommend(@RequestBody Map<String, String> body) {
-        String category = body.get("category");
-        String x = body.get("x"); // 클라이언트에서 받은 경도
-        String y = body.get("y"); // 클라이언트에서 받은 위도
+        try {
+            String category = body.get("category");
+            String x = body.get("x");
+            String y = body.get("y");
 
-        // category를 코드로 매핑 (예: 음식점 → FD6, 카페 → CE7)
-        Map<String, String> categoryCodeMap = Map.ofEntries(
-                Map.entry("음식점", "FD6"),
-                Map.entry("한식", "FD6"),
-                Map.entry("중식", "FD6"),
-                Map.entry("일식", "FD6"),
-                Map.entry("고기", "FD6"),
-                Map.entry("양식", "FD6"),
-                Map.entry("카페", "CE7"),
-                Map.entry("병원", "HP8"),
-                Map.entry("약국", "PM9"),
-                Map.entry("관광명소", "AT4"),
-                Map.entry("숙박", "AD5")
-        );
+            // 400 Bad Request 처리
+            if (category == null || x == null || y == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body("요청에 필요한 파라미터(category, x, y)가 누락되었습니다.");
+            }
 
-        // category 코드 추출, 기본값 FD6
-        String categoryCode = categoryCodeMap.getOrDefault(category, "FD6");
+            Map<String, String> categoryCodeMap = Map.ofEntries(
+                    Map.entry("음식점", "FD6"),
+                    Map.entry("한식", "FD6"),
+                    Map.entry("중식", "FD6"),
+                    Map.entry("일식", "FD6"),
+                    Map.entry("고기", "FD6"),
+                    Map.entry("양식", "FD6"),
+                    Map.entry("카페", "CE7"),
+                    Map.entry("병원", "HP8"),
+                    Map.entry("약국", "PM9"),
+                    Map.entry("관광명소", "AT4"),
+                    Map.entry("숙박", "AD5")
+            );
 
-        // kakaoMapService 호출 (x, y 포함)
-        return kakaoMapService.searchPlacesByCategory(categoryCode, x, y);
+            String categoryCode = categoryCodeMap.getOrDefault(category, "FD6");
+
+            // 200 OK 또는 kakaoMapService 내부에서 예외 발생 시 500 처리
+            return kakaoMapService.searchPlacesByCategory(categoryCode, x, y);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("서버 오류 발생: " + e.getMessage());
+        }
     }
 }
