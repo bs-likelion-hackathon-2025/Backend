@@ -18,7 +18,7 @@ public class KakaoMapService {
     private final RestTemplate restTemplate;
     private final String kakaoApiKey;
 
-    // ✅ 실제 검색 가능한 키워드 중심 매핑
+    // 실제 검색 가능한 키워드 중심 매핑
     private static final Map<String, String> categoryMap = Map.ofEntries(
             Map.entry("한식", "한식"),
             Map.entry("중식", "중식당"),

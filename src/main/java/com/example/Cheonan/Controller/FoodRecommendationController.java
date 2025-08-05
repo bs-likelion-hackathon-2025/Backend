@@ -48,7 +48,7 @@ public class FoodRecommendationController {
                 Map.entry("중식", "FD6"),
                 Map.entry("일식", "FD6"),
                 Map.entry("고기", "FD6"),
-                Map.entry("양식", "FD6"), // ✅ 추가
+                Map.entry("양식", "FD6"),
                 Map.entry("카페", "CE7"),
                 Map.entry("병원", "HP8"),
                 Map.entry("약국", "PM9"),

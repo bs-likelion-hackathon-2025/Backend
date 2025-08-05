@@ -9,5 +9,5 @@ import java.util.List;
 @Data
 public class KakaoResponse {
     private List<KakaoDocument> documents;
-    private KakaoMeta meta; // 필요 없으면 생략 가능
+    private KakaoMeta meta;
 }
