@@ -5,24 +5,36 @@ import lombok.Data;
 
 @Data
 public class KakaoDocument {
-
     @JsonProperty("place_name")
     private String placeName;
 
     @JsonProperty("address_name")
     private String addressName;
 
+    @JsonProperty("phone")
+    private String phone;
+
     @JsonProperty("road_address_name")
     private String roadAddressName;
-
-    private String phone;
 
     @JsonProperty("place_url")
     private String placeUrl;
 
-    @JsonProperty("X")
-    private String X;
+    @JsonProperty("x")
+    private String x;
 
-    @JsonProperty("Y")
-    private String Y;
+    @JsonProperty("y")
+    private String y;
+
+    @JsonProperty("category_group_code")
+    private String categoryGroupCode;
+
+    @JsonProperty("category_group_name")
+    private String categoryGroupName;
+
+    @JsonProperty("category_name")
+    private String categoryName;
+
+    @JsonProperty("id")
+    private String id;
 }
