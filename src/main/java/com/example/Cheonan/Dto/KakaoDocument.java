@@ -5,26 +5,13 @@ import lombok.Data;
 
 @Data
 public class KakaoDocument {
+    private String id;
+
     @JsonProperty("place_name")
     private String placeName;
 
-    @JsonProperty("address_name")
-    private String addressName;
-
-    @JsonProperty("phone")
-    private String phone;
-
-    @JsonProperty("road_address_name")
-    private String roadAddressName;
-
-    @JsonProperty("place_url")
-    private String placeUrl;
-
-    @JsonProperty("x")
-    private String x;
-
-    @JsonProperty("y")
-    private String y;
+    @JsonProperty("category_name")
+    private String categoryName;
 
     @JsonProperty("category_group_code")
     private String categoryGroupCode;
@@ -32,9 +19,21 @@ public class KakaoDocument {
     @JsonProperty("category_group_name")
     private String categoryGroupName;
 
-    @JsonProperty("category_name")
-    private String categoryName;
+    private String phone;
 
-    @JsonProperty("id")
-    private String id;
+    @JsonProperty("address_name")
+    private String addressName;
+
+    @JsonProperty("road_address_name")
+    private String roadAddressName;
+
+    // 좌표 (카카오: x=경도, y=위도)
+    private String x;
+    private String y;
+
+    @JsonProperty("place_url")
+    private String placeUrl;
+
+    // x,y를 넣었을 때만 존재 (문서상 선택 필드)
+    private String distance;
 }

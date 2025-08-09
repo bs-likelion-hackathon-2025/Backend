@@ -1,16 +1,16 @@
+// src/main/java/com/example/Cheonan/Service/KakaoMapService.java
 package com.example.Cheonan.Service;
 
 import com.example.Cheonan.Dto.KakaoResponse;
-import com.example.Cheonan.Dto.PlaceDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URLEncoder;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class KakaoMapService {
@@ -18,85 +18,80 @@ public class KakaoMapService {
     private final RestTemplate restTemplate;
     private final String kakaoApiKey;
 
-    // 실제 검색 가능한 키워드 중심 매핑
-    private static final Map<String, String> categoryMap = Map.ofEntries(
-            Map.entry("한식", "한식"),
-            Map.entry("중식", "중식당"),
-            Map.entry("일식", "스시"),
-            Map.entry("초밥", "초밥"),
-            Map.entry("양식", "파스타"),
-            Map.entry("고기", "삼겹살"),
-            Map.entry("치킨", "치킨집"),
-            Map.entry("회", "횟집"),
-            Map.entry("뷔페", "뷔페")
-    );
-
     public KakaoMapService(RestTemplate restTemplate,
                            @Value("${kakao.rest.api.key}") String kakaoApiKey) {
         this.restTemplate = restTemplate;
         this.kakaoApiKey = kakaoApiKey;
     }
 
-    public ResponseEntity<?> searchPlacesByCategory(String categoryCode, String x, String y) {
+    /**
+     * 카카오 키워드 검색 프록시 (GET)
+     * - 수동 인코딩 금지(URLEncoder X), UriComponentsBuilder + encode 사용
+     */
+    public ResponseEntity<?> searchKeyword(String query,
+                                           String x, String y,
+                                           Integer radius, Integer size, Integer page,
+                                           String sort, String categoryGroupCode) {
         try {
-            // 좌표가 null이거나 비어 있으면 기본 좌표 사용 (천안시청)
-            if (x == null || x.isBlank()) x = "127.1465";
-            if (y == null || y.isBlank()) y = "36.8151";
-
-            String url = "https://dapi.kakao.com/v2/local/search/category.json"
-                    + "?category_group_code=" + categoryCode
-                    + "&x=" + x
-                    + "&y=" + y
-                    + "&radius=20000"
-                    + "&sort=distance"
-                    + "&size=15";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-            headers.set("User-Agent", "Mozilla/5.0");
-
-            HttpEntity<?> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<KakaoResponse> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    KakaoResponse.class
-            );
-
-            KakaoResponse body = response.getBody();
-
-            if (body == null || body.getDocuments() == null || body.getDocuments().isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                        "message", "검색 결과가 없습니다.",
-                        "data", List.of()
-                ));
+            if (query == null || query.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("message", "query는 필수입니다."));
             }
 
-            List<PlaceDto> result = body.getDocuments().stream()
-                    .map(doc -> new PlaceDto(
-                            doc.getPlaceName(),
-                            doc.getAddressName(),
-                            doc.getPhone(),
-                            doc.getRoadAddressName(),
-                            doc.getPlaceUrl(),
-                            doc.getX(),
-                            doc.getY()
-                    ))
-                    .limit(5) // 거리순 5개만
-                    .collect(Collectors.toList());
+            // 카카오 제약
+            int s = (size == null || size < 1) ? 15 : Math.min(size, 15);    // 1~15
+            int p = (page == null || page < 1) ? 1  : Math.min(page, 45);    // 1~45
+            Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000)); // 0~20000
+            String sortParam = (sort == null || sort.isBlank()) ? "accuracy" : sort;    // accuracy|distance
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "성공",
-                    "data", result
-            ));
+            UriComponentsBuilder builder = UriComponentsBuilder
+                    .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")
+                    .queryParam("query", query)
+                    .queryParam("size", s)
+                    .queryParam("page", p)
+                    .queryParam("sort", sortParam);
 
+            if (x != null && !x.isBlank() && y != null && !y.isBlank()) {
+                builder.queryParam("x", x).queryParam("y", y);
+            }
+            if (r != null) builder.queryParam("radius", r);
+            if (categoryGroupCode != null && !categoryGroupCode.isBlank()) {
+                builder.queryParam("category_group_code", categoryGroupCode);
+            }
+
+            URI uri = builder.build(false)
+                    .encode(StandardCharsets.UTF_8)
+                    .toUri();
+
+            // 헤더
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+            headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            // 호출
+            ResponseEntity<KakaoResponse> resp = restTemplate.exchange(
+                    uri, HttpMethod.GET, entity, KakaoResponse.class
+            );
+
+            return ResponseEntity.status(resp.getStatusCode())
+                    .headers(copyContentType(resp.getHeaders()))
+                    .body(resp.getBody());
+
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(ex.getResponseBodyAsString());
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "서버 오류 발생",
-                    "data", List.of()
-            ));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("message", "서버 오류 발생: " + e.getMessage()));
         }
+    }
+
+    private HttpHeaders copyContentType(HttpHeaders src) {
+        HttpHeaders dst = new HttpHeaders();
+        if (src.getContentType() != null) dst.setContentType(src.getContentType());
+        return dst;
     }
 }
