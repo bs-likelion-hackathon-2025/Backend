@@ -1,6 +1,6 @@
-// src/main/java/com/example/Cheonan/Service/KakaoMapService.java
 package com.example.Cheonan.Service;
 
+import com.example.Cheonan.Dto.KakaoDocument;
 import com.example.Cheonan.Dto.KakaoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -11,6 +11,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class KakaoMapService {
@@ -25,30 +27,27 @@ public class KakaoMapService {
     }
 
     /**
-     * 카카오 키워드 검색 프록시 (GET)
-     * - 수동 인코딩 금지(URLEncoder X), UriComponentsBuilder + encode 사용
+     * 키워드로 장소 검색 (이미지 제외)
      */
     public ResponseEntity<?> searchKeyword(String query,
                                            String x, String y,
-                                           Integer radius, Integer size, Integer page,
-                                           String sort, String categoryGroupCode) {
+                                           Integer radius,
+                                           String categoryGroupCode) {
         try {
             if (query == null || query.isBlank()) {
                 return ResponseEntity.badRequest()
-                        .body(java.util.Map.of("message", "query는 필수입니다."));
+                        .body(Map.of("message", "query는 필수입니다."));
             }
 
-            // 카카오 제약
-            int s = (size == null || size < 1) ? 15 : Math.min(size, 15);    // 1~15
-            int p = (page == null || page < 1) ? 1  : Math.min(page, 45);    // 1~45
-            Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000)); // 0~20000
-            String sortParam = (sort == null || sort.isBlank()) ? "accuracy" : sort;    // accuracy|distance
+            // 거리순 고정 & 5개 제한
+            int s = 5;
+            String sortParam = "distance";
+            Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000));
 
             UriComponentsBuilder builder = UriComponentsBuilder
                     .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")
                     .queryParam("query", query)
                     .queryParam("size", s)
-                    .queryParam("page", p)
                     .queryParam("sort", sortParam);
 
             if (x != null && !x.isBlank() && y != null && !y.isBlank()) {
@@ -63,21 +62,16 @@ public class KakaoMapService {
                     .encode(StandardCharsets.UTF_8)
                     .toUri();
 
-            // 헤더
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-            headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            // 호출
             ResponseEntity<KakaoResponse> resp = restTemplate.exchange(
                     uri, HttpMethod.GET, entity, KakaoResponse.class
             );
 
-            return ResponseEntity.status(resp.getStatusCode())
-                    .headers(copyContentType(resp.getHeaders()))
-                    .body(resp.getBody());
-
+            return resp;
         } catch (HttpStatusCodeException ex) {
             return ResponseEntity.status(ex.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -85,13 +79,40 @@ public class KakaoMapService {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(java.util.Map.of("message", "서버 오류 발생: " + e.getMessage()));
+                    .body(Map.of("message", "서버 오류 발생: " + e.getMessage()));
         }
     }
 
-    private HttpHeaders copyContentType(HttpHeaders src) {
-        HttpHeaders dst = new HttpHeaders();
-        if (src.getContentType() != null) dst.setContentType(src.getContentType());
-        return dst;
+    /**
+     * 카카오 이미지 검색 API 호출 (장소명으로 1장 이미지 가져오기)
+     */
+    public String searchImage(String query) {
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder
+                    .fromHttpUrl("https://dapi.kakao.com/v2/search/image")
+                    .queryParam("query", query)
+                    .queryParam("size", 1)
+                    .queryParam("sort", "accuracy");
+
+            URI uri = builder.build(false).encode(StandardCharsets.UTF_8).toUri();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);
+
+            Map<String, Object> body = response.getBody();
+            if (body != null && body.containsKey("documents")) {
+                List<Map<String, Object>> docs = (List<Map<String, Object>>) body.get("documents");
+                if (!docs.isEmpty()) {
+                    return (String) docs.get(0).get("image_url");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
