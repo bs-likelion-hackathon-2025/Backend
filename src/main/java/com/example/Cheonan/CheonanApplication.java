@@ -21,6 +21,5 @@ public class CheonanApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CheonanApplication.class, args);
 	}
-
 }
 
