@@ -22,3 +22,4 @@ public class CheonanApplication {
 		SpringApplication.run(CheonanApplication.class, args);
 	}
 }
+
