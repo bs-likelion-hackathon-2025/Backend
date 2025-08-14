@@ -14,13 +14,11 @@ public class WebConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173","https://pit--stop.vercel.app/") // React 주소
+                        .allowedOrigins("http://localhost:5173","https://wearepitstop.vercel.app/") // React 주소
                         .allowedHeaders("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowCredentials(true);
             }
         };
     }
-
-
 }
