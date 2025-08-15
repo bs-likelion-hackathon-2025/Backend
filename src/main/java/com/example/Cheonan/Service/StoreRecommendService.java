@@ -42,8 +42,8 @@ public class StoreRecommendService {
     );
 
     public List<Store> recommendByMultiIntentOrFallback(String reply, IntentResult intent) {
-        final int K_PER_CAT = 3;   // 후보 카테고리당 가져올 가게 수
-        final int LIMIT = 12;      // 최종 응답 수
+        final int K_PER_CAT = 1;   // 후보 카테고리당 가져올 가게 수
+        final int LIMIT = 3;      // 최종 응답 수
 
         // 1) 의도에서 후보 모으기
         List<String> c2 = safeTop3(intent != null ? intent.getCategory2Candidates() : null);
