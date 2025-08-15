@@ -1,7 +1,5 @@
 package com.example.Cheonan.Service;
 
-import com.example.Cheonan.Dto.KakaoDocument;
-import com.example.Cheonan.Dto.KakaoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -39,39 +37,34 @@ public class KakaoMapService {
                         .body(Map.of("message", "query는 필수입니다."));
             }
 
-            // 거리순 고정 & 5개 제한
-            int s = 5;
+            int size = 5;
             String sortParam = "distance";
             Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000));
 
             UriComponentsBuilder builder = UriComponentsBuilder
                     .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")
                     .queryParam("query", query)
-                    .queryParam("size", s)
+                    .queryParam("size", size)
                     .queryParam("sort", sortParam);
 
-            if (x != null && !x.isBlank() && y != null && !y.isBlank()) {
-                builder.queryParam("x", x).queryParam("y", y);
-            }
+            builder.queryParam("x", x)
+                    .queryParam("y", y);
+
             if (r != null) builder.queryParam("radius", r);
             if (categoryGroupCode != null && !categoryGroupCode.isBlank()) {
                 builder.queryParam("category_group_code", categoryGroupCode);
             }
 
-            URI uri = builder.build(false)
-                    .encode(StandardCharsets.UTF_8)
-                    .toUri();
+            URI uri = builder.build(false).encode(StandardCharsets.UTF_8).toUri();
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<KakaoResponse> resp = restTemplate.exchange(
-                    uri, HttpMethod.GET, entity, KakaoResponse.class
-            );
+            ResponseEntity<Map> resp = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);
+            return ResponseEntity.ok(resp.getBody());
 
-            return resp;
         } catch (HttpStatusCodeException ex) {
             return ResponseEntity.status(ex.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
