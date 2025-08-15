@@ -28,7 +28,18 @@ public class FoodRecommendController {
     public ResponseEntity<?> recommend(@Valid @RequestBody Map<String, Object> body) {
         String query = asString(body.get("query"));
         String category = asString(body.get("category"));
+        String x = asString(body.get("x"));
+        String y = asString(body.get("y"));
+        Integer radius = asInteger(body.get("radius"));
+        String group = asString(body.get("categoryGroupCode"));
 
+        // 좌표 필수 확인
+        if (x == null || x.isBlank() || y == null || y.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("code", -2, "msg", "Required Parameter (x, y)"));
+        }
+
+        // query 없으면 category 기반으로 변환
         if ((query == null || query.isBlank()) && category != null && !category.isBlank()) {
             query = switch (category) {
                 case "고기" -> "고깃집";
@@ -43,11 +54,6 @@ public class FoodRecommendController {
                 default -> category;
             };
         }
-
-        String x = asString(body.get("x"));
-        String y = asString(body.get("y"));
-        Integer radius = asInteger(body.get("radius"));
-        String group = asString(body.get("categoryGroupCode"));
 
         return kakaoMapService.searchKeyword(query, x, y, radius, group);
     }
