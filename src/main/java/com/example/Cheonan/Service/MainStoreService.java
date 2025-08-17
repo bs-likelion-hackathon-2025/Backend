@@ -16,6 +16,7 @@ import java.util.List;
 @Slf4j // ★ 추가
 public class MainStoreService {
 
+
     private final StoreRepository storeRepository;
 
     // 천안 시청 기준

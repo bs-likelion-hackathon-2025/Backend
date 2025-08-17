@@ -3,6 +3,7 @@ package com.example.Cheonan.Dto;
 import lombok.Builder;
 import lombok.Getter;
 
+
 /**
  * 모든 API 성공 / 실패를 응답 구조 통일
  */
