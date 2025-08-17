@@ -48,4 +48,5 @@ public class MainStoreController {
         var resp = mainStoreService.getCards(size, lng, lat, radius);
         return ResponseEntity.ok(resp);
     }
+
 }
