@@ -1,12 +1,17 @@
 // src/main/java/com/example/Cheonan/Controller/PlaceController.java
 package com.example.Cheonan.Controller;
 
+import com.example.Cheonan.Dto.KakaoDocument;
+import com.example.Cheonan.Dto.KakaoResponse;
+import com.example.Cheonan.Dto.PlaceDto;
+import com.example.Cheonan.Dto.StoreCardDto;
 import com.example.Cheonan.Service.KakaoMapPlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -77,4 +82,5 @@ public class PlaceController {
         if (o == null) return null;
         try { return Integer.valueOf(String.valueOf(o)); } catch (Exception e) { return null; }
     }
+
 }

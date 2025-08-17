@@ -1,6 +1,9 @@
 package com.example.Cheonan.Util;
 
 import com.example.Cheonan.Dto.ChatRecommendResponse;
+import com.example.Cheonan.Exception.TooManyRequestsException;
+import com.example.Cheonan.Exception.UpstreamBadResponseException;
+import com.example.Cheonan.Exception.UpstreamTimeoutException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +13,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -40,10 +44,10 @@ public class GeminiClient {
     }
 
     public ChatRecommendResponse getFoodRecommendationWithIntent(String userMessage) {
-        // 1) 프롬프트
+        // 프롬프트
         String prompt = buildPrompt(userMessage);
 
-        // 2) 요청 바디 (role 생략 가능하지만 명시해도 무방)
+        // 요청 바디 (role 생략 가능하지만 명시해도 무방)
         Map<String, Object> contentPart = Map.of("text", prompt);
         Map<String, Object> content = Map.of("role", "user", "parts", List.of(contentPart));
         Map<String, Object> body = Map.of("contents", List.of(content));
@@ -57,6 +61,7 @@ public class GeminiClient {
 
         try {
             String urlWithKey = GEMINI_URL + "?key=" + apiKey;
+
             ResponseEntity<Map> response = restTemplate.postForEntity(urlWithKey, request, Map.class);
 
             Map<String, Object> resBody = response.getBody();
@@ -96,12 +101,28 @@ public class GeminiClient {
             return dto;
 
         } catch (HttpStatusCodeException he) {
+            int code = he.getRawStatusCode();
             String bodyText = he.getResponseBodyAsString();
-            log.error("Gemini HTTP {}: {}", he.getStatusCode(), truncate(bodyText, 500));
-            return emptyReply("Gemini HTTP 오류: " + he.getStatusCode().value());
+            log.error("Gemini HTTP {}: {}", code, truncate(bodyText, 500));
+
+            if (code == 429) {
+                throw new TooManyRequestsException("Gemini 쿼터 초과(429)");
+            } else if (code == 403) {
+                throw new UpstreamTimeoutException("Gemini 접근 권한 없음");
+            } else if (code >= 500) {
+                throw new UpstreamBadResponseException("Gemini 서버 오류(" + code + ")");
+            } else {
+                throw new UpstreamBadResponseException("Gemini 호출 실패(" + code + ")");
+            }
+        } catch (ResourceAccessException rae) {
+            // 연결/타임아웃 계열 (RestTemplate)
+            throw new UpstreamTimeoutException("Gemini 연결/타임아웃 오류");
+        } catch (UpstreamBadResponseException | UpstreamTimeoutException | TooManyRequestsException known) {
+            // 우리가 의도적으로 던진 예외는 그대로 전파
+            throw known;
         } catch (Exception e) {
             log.error("Gemini 호출 실패: {}", e.toString());
-            return emptyReply("Gemini 추천에 실패했어요: " + e.getMessage());
+            throw new UpstreamBadResponseException("Gemini 처리 중 알 수 없는 오류");
         }
     }
 

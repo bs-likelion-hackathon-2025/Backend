@@ -1,6 +1,7 @@
 // src/main/java/com/example/Cheonan/Service/KakaoMapPlaceService.java
 package com.example.Cheonan.Service;
 
+import com.example.Cheonan.Dto.KakaoDocument;
 import com.example.Cheonan.Dto.KakaoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class KakaoMapPlaceService {
             }
 
             int s = (size == null || size < 1) ? 15 : Math.min(size, 14);     // 1~14
-            int p = (page == null || page < 1) ? 1  : Math.min(page, 42);     // 1~42
+            int p = (page == null || page < 1) ? 1 : Math.min(page, 42);     // 1~42
             Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000)); // 0~20000
             String sortParam = (sort == null || sort.isBlank()) ? "accuracy" : sort;
 
@@ -100,4 +102,5 @@ public class KakaoMapPlaceService {
                     .body(Map.of("message", "서버 오류 발생: " + e.getMessage()));
         }
     }
-}
+
+    }

@@ -1,8 +1,12 @@
 package com.example.Cheonan.Controller;
 
+import com.example.Cheonan.Dto.PageResponse;
+import com.example.Cheonan.Dto.StoreCardDto;
 import com.example.Cheonan.Service.KakaoMapService;
+import com.example.Cheonan.Service.MainStoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +25,7 @@ public class FoodRecommendController {
 
     @Operation(summary = "룰렛 결과 기반 음식점 5곳 거리순 추천")
     @PostMapping("/recommend")
-    public ResponseEntity<?> recommend(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> recommend(@Valid @RequestBody Map<String, Object> body) {
         String query = asString(body.get("query"));
         String category = asString(body.get("category"));
         String x = asString(body.get("x"));
@@ -77,4 +81,6 @@ public class FoodRecommendController {
             return null;
         }
     }
+
+
 }
