@@ -2,9 +2,8 @@ package com.example.Cheonan.Service;
 
 import com.example.Cheonan.Dto.ChatRecommendResponse;
 import com.example.Cheonan.Dto.ChatRequest;
-import com.example.Cheonan.Dto.RecommendedStore;
+import com.example.Cheonan.Dto.ChatRecommendedStore;
 //import com.example.Cheonan.Entity.ChatMessage;
-import com.example.Cheonan.Entity.Store;
 //import com.example.Cheonan.Repository.ChatMessageRepository;
 import com.example.Cheonan.Util.GeminiClient;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +61,7 @@ public class ChatService {
 
         // 3) 엔티티 → 전송용 DTO
         var storeDtos = stores.stream()
-                .map(s -> new RecommendedStore(
+                .map(s -> new ChatRecommendedStore(
                         s.getName(),
                         s.getAddress(),
                         s.getCategory1(),
@@ -86,7 +84,4 @@ public class ChatService {
                 .build();
     }
 
-//    public List<ChatMessage> getChatHistory(String userInput) {
-//        return chatMessageRepository.findByUserMessage(userInput);
-//    }
 }
