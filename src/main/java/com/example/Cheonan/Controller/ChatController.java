@@ -2,16 +2,18 @@ package com.example.Cheonan.Controller;
 
 import com.example.Cheonan.Dto.ChatRecommendResponse;
 import com.example.Cheonan.Dto.ChatRequest;
-// import com.example.Cheonan.Dto.ChatResponse; // ❌ 사용 안 하면 제거
+// import com.example.Cheonan.Dto.ChatResponse; // 사용 안 하면 제거
 //import com.example.Cheonan.Entity.ChatMessage;
 import com.example.Cheonan.Service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
 @Tag(name = "챗봇 API", description = "사용자 메시지 처리 및 대화 기록 조회 API")
+@Validated
 public class ChatController {
 
     private final ChatService chatService;
@@ -41,19 +44,8 @@ public class ChatController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<ChatRecommendResponse> chatWithRecommendation(
-            @RequestBody(required = false) ChatRequest request
+            @Valid @RequestBody ChatRequest request
     ) {
-        // 요청 본문 자체가 null인 극단 케이스만 400
-        if (request == null) {
-            return ResponseEntity.badRequest().body(
-                    ChatRecommendResponse.builder()
-                            .reply("요청 본문이 비어 있어요.")
-                            .intent(null)
-                            .stores(List.of())
-                            .build()
-            );
-        }
-        // userId/message 공란은 서비스가 안전하게 처리함
         ChatRecommendResponse response = chatService.processMessageWithRecommendation(request);
         return ResponseEntity.ok(response);
     }
