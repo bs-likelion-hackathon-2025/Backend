@@ -1,5 +1,6 @@
 package com.example.Cheonan.Service;
 
+import com.example.Cheonan.Dto.KakaoDocument;
 import com.example.Cheonan.Dto.KakaoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -10,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ public class KakaoMapPlaceService {
         this.kakaoApiKey = kakaoApiKey;
     }
 
-    // 정확도순 전용 (천안 내 식당, query 반영)
+    // 정확도순 전용 (천안 내 식당, query 반영, 랜덤)
     public ResponseEntity<?> searchAccuracy(String query,
                                             Integer radius, Integer size, Integer page,
                                             String categoryGroupCode) {
@@ -43,7 +45,8 @@ public class KakaoMapPlaceService {
         // 카테고리는 무조건 식당(FD6)
         String effectiveGroup = "FD6";
 
-        return doSearch(
+        // 먼저 정확도순으로 조회
+        ResponseEntity<?> resp = doSearch(
                 query,
                 cheonanX,
                 cheonanY,
@@ -53,9 +56,20 @@ public class KakaoMapPlaceService {
                 "accuracy",
                 effectiveGroup
         );
+
+        // Body가 KakaoResponse 타입이면 items를 랜덤 섞기
+        if (resp.getBody() instanceof KakaoResponse kakaoResp) {
+            List<KakaoDocument> items = kakaoResp.getDocuments();
+            if (items != null && !items.isEmpty()) {
+                Collections.shuffle(items); // 랜덤 섞기
+            }
+            return ResponseEntity.status(resp.getStatusCode()).body(kakaoResp);
+        }
+
+        return resp;
     }
 
-    // 거리순 전용 (x,y 필수)
+    // 거리순 전용 (x,y 필수, 기존 방식 유지)
     public ResponseEntity<?> searchDistance(String query, String x, String y,
                                             Integer radius, Integer size, Integer page,
                                             String categoryGroupCode) {
