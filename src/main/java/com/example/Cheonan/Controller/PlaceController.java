@@ -1,4 +1,3 @@
-// src/main/java/com/example/Cheonan/Controller/PlaceController.java
 package com.example.Cheonan.Controller;
 
 import com.example.Cheonan.Dto.KakaoDocument;
@@ -26,16 +25,16 @@ public class PlaceController {
     }
 
     @Operation(
-            summary = "정확도순 검색 (accuracy)",
+            summary = "정확도순 검색 (천안 내 식당만, query 반영)",
             description = """
         카카오 키워드 검색을 정확도순으로 조회합니다.
+        천안시 내 식당(FD6)만 조회되며 query는 반영됩니다.
         요청 바디 예:
         {
-          "query": "한식",
-          "radius": 3000,          // 선택(0~20000)
+          "query": "한식",          // 필수
+          "radius": 3000,          // 선택(0~20000, 없으면 10000m 기본값)
           "size": 15,              // 1~15
-          "page": 1,               // 1~45
-          "categoryGroupCode": "FD6"
+          "page": 1                // 1~45
         }
         """
     )
@@ -45,8 +44,7 @@ public class PlaceController {
         Integer radius= asInt(body.get("radius"));
         Integer size  = asInt(body.get("size"));
         Integer page  = asInt(body.get("page"));
-        String group  = asString(body.get("categoryGroupCode"));
-        return service.searchAccuracy(query, radius, size, page, group);
+        return service.searchAccuracy(query, radius, size, page, null);
     }
 
     @Operation(
