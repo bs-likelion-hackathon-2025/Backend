@@ -54,8 +54,8 @@ public class FoodRecommendController {
         return kakaoMapService.searchKeyword(query, x, y, radius, group);
     }
 
-    @Operation(summary = "특정 장소 이미지 가져오기")
-    @GetMapping("/recommend/image")
+    @Operation(summary = "특정 가게 상세 페이지 불러오기")
+    @GetMapping("/recommend/detail")
     public ResponseEntity<?> getImage(@RequestParam String placeName) {
         String imageUrl = kakaoMapService.searchImage(placeName);
         if (imageUrl != null) {
