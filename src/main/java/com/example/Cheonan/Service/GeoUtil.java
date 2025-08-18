@@ -4,6 +4,7 @@ package com.example.Cheonan.Service;
 public final class GeoUtil {
     private GeoUtil() {}
 
+
     // 하버사인 거리(m)
     public static double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
         double R = 6371000; // meters
