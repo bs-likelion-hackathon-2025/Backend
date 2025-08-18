@@ -91,4 +91,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(code.getStatus())
                 .body(ApiResponse.fail(err));
     }
+
+    @ExceptionHandler(NoContentException.class)
+    public ResponseEntity<Void> handleNoContent(NoContentException e) {
+        return ResponseEntity.noContent().build(); // 204 반환
+    }
 }
