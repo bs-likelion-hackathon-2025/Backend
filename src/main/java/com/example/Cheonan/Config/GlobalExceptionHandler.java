@@ -4,18 +4,18 @@ package com.example.Cheonan.Config;
 import com.example.Cheonan.Dto.ApiError;
 import com.example.Cheonan.Dto.ApiResponse;
 import com.example.Cheonan.Exception.ErrorCode;
-import jakarta.validation.ConstraintViolationException;
+import com.example.Cheonan.Exception.NoContentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 @Slf4j
@@ -92,5 +92,10 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(code.getStatus())
                 .body(ApiResponse.fail(err));
+    }
+
+    @ExceptionHandler(NoContentException.class)
+    public ResponseEntity<Void> handleNoContent(NoContentException e) {
+        return ResponseEntity.noContent().build(); // 204 반환
     }
 }

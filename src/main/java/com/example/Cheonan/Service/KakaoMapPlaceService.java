@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -88,8 +89,8 @@ public class KakaoMapPlaceService {
                 return ResponseEntity.badRequest().body(Map.of("message", "query는 필수입니다."));
             }
 
-            int s = (size == null || size < 1) ? 15 : Math.min(size, 15);     // 1~15
-            int p = (page == null || page < 1) ? 1  : Math.min(page, 45);     // 1~45
+            int s = (size == null || size < 1) ? 15 : Math.min(size, 14);     // 1~14
+            int p = (page == null || page < 1) ? 1 : Math.min(page, 42);     // 1~42
             Integer r = (radius == null) ? null : Math.max(0, Math.min(radius, 20000)); // 0~20000
             String sortParam = (sort == null || sort.isBlank()) ? "accuracy" : sort;
 
@@ -135,4 +136,5 @@ public class KakaoMapPlaceService {
                     .body(Map.of("message", "서버 오류 발생: " + e.getMessage()));
         }
     }
-}
+
+    }

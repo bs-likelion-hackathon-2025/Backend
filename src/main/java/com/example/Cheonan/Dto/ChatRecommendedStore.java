@@ -13,7 +13,6 @@ public class ChatRecommendedStore {
     private String address;
     private String category1;
     private String category2;
-    private String googleLink;
     private String kakaoLink;
     private String phoneNumber;
     private Double rating;

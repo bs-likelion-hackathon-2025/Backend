@@ -1,17 +1,16 @@
 package com.example.Cheonan.Dto;
 
-import com.example.Cheonan.Dto.IntentResult;
-import com.example.Cheonan.Dto.RecommendedStore;
 import lombok.*;
 
 import java.util.List;
+
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRecommendResponse {
+public class ChatRecommendResponse { // 챗봇 추천 가게 DTO
     private String reply;
     private IntentResult intent;
-    private List<RecommendedStore> stores;
+    private List<ChatRecommendedStore> stores;
 }
