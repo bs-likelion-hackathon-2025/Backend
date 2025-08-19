@@ -77,12 +77,12 @@ public class GlobalExceptionHandler {
         log.warn("[409] Data integrity: {}", detail);
         return build(ErrorCode.DATA_INTEGRITY, "데이터 제약 조건에 맞지 않아요.", detail);
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleAny(Exception e) {
-        log.error("[500] Unhandled exception", e);
-        return build(ErrorCode.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR.getDefaultMessage(), null);
-    }
+//
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiResponse<Void>> handleAny(Exception e) {
+//        log.error("[500] Unhandled exception", e);
+//        return build(ErrorCode.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR.getDefaultMessage(), null);
+//    }
 
     private ResponseEntity<ApiResponse<Void>> build(ErrorCode code, String message, String detail) {
         ApiError err = ApiError.builder()
