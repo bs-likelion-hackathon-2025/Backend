@@ -13,7 +13,7 @@ public class WebConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
+                registry.addMapping("/**")
                         .allowedOrigins("http://localhost:5173", "https://wearepitstop.vercel.app", "https://fdafa.shop")
                         .allowedMethods("GET", "POST", "OPTIONS")
                         .allowedHeaders("*")
