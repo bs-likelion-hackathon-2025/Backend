@@ -1,11 +1,13 @@
-//package com.example.Cheonan.Dto;
-//
-//import lombok.AllArgsConstructor;
-//import lombok.Getter;
-//
-//@AllArgsConstructor
-//@Getter
-//public class ChatResponse { // 챗봇 응답 DTO
-//    private String response;
-//
-//}
+package com.example.Cheonan.Dto;
+
+import lombok.Getter;
+
+@Getter
+public class ChatResponse {
+    private String response;
+
+    public ChatResponse(String response) {
+        this.response = response;
+    }
+
+}

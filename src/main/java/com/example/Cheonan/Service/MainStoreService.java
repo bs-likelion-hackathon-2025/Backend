@@ -2,11 +2,10 @@ package com.example.Cheonan.Service;
 
 import com.example.Cheonan.Dto.PageResponse;
 import com.example.Cheonan.Dto.StoreCardDto;
-import com.example.Cheonan.Entity.Store;
 import com.example.Cheonan.Repository.Projection.NearbyRow;
 import com.example.Cheonan.Repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;   // ★ 추가
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

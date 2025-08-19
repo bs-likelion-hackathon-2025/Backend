@@ -1,8 +1,10 @@
 // src/main/java/com/example/Cheonan/Exception/GlobalExceptionHandler.java
-package com.example.Cheonan.Exception;
+package com.example.Cheonan.Config;
 
 import com.example.Cheonan.Dto.ApiError;
 import com.example.Cheonan.Dto.ApiResponse;
+import com.example.Cheonan.Exception.ErrorCode;
+import com.example.Cheonan.Exception.NoContentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
@@ -75,12 +77,12 @@ public class GlobalExceptionHandler {
         log.warn("[409] Data integrity: {}", detail);
         return build(ErrorCode.DATA_INTEGRITY, "데이터 제약 조건에 맞지 않아요.", detail);
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleAny(Exception e) {
-        log.error("[500] Unhandled exception", e);
-        return build(ErrorCode.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR.getDefaultMessage(), null);
-    }
+//
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiResponse<Void>> handleAny(Exception e) {
+//        log.error("[500] Unhandled exception", e);
+//        return build(ErrorCode.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR.getDefaultMessage(), null);
+//    }
 
     private ResponseEntity<ApiResponse<Void>> build(ErrorCode code, String message, String detail) {
         ApiError err = ApiError.builder()

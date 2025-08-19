@@ -4,7 +4,6 @@ import com.example.Cheonan.Dto.PageResponse;
 import com.example.Cheonan.Dto.StoreCardDto;
 import com.example.Cheonan.Service.MainStoreService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;

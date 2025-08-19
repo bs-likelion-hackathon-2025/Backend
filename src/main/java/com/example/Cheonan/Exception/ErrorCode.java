@@ -12,7 +12,6 @@ public enum ErrorCode {
     EXTERNAL_API_QUOTA(HttpStatus.TOO_MANY_REQUESTS, "외부 API 사용량이 초과되었습니다."),
     EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 API 호출에 실패했습니다."),
     DATA_INTEGRITY(HttpStatus.CONFLICT, "데이터 무결성에 위배됩니다."),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 콘텐트 타입입니다.");
 
     private final HttpStatus status;
