@@ -11,9 +11,7 @@ src/main/java/com/example/Cheonan/Repository/ChatMessageRepository.java
 src/main/java/com/example/Cheonan/Controller/StoreController.java
 src/main/java/com/example/Cheonan/Controller/WeatherController.java
 src/main/java/com/example/Cheonan/Dto/ChatMessage.java
-src/main/java/com/example/Cheonan/Dto/PageResponse.java
 src/main/java/com/example/Cheonan/Dto/ParseWeatherResponse.java
-src/main/java/com/example/Cheonan/Dto/StoreCardDto.java
 src/main/java/com/example/Cheonan/Dto/WeatherResponse.java
 src/main/java/com/example/Cheonan/Service/StoreService.java
 src/main/java/com/example/Cheonan/Service/WeatherService.java
