@@ -22,16 +22,28 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
      * - Pageable의 Sort는 이 JPQL의 ORDER BY가 우선됨(명시적 고정 정렬).
      */
     @Query("""
-        SELECT s
-        FROM Store s
-        WHERE (
-               UPPER(s.category1) LIKE UPPER(CONCAT('%', :kw, '%'))
-            OR UPPER(s.category2) LIKE UPPER(CONCAT('%', :kw, '%'))
-            OR UPPER(s.category3) LIKE UPPER(CONCAT('%', :kw, '%'))
-            OR UPPER(s.category4) LIKE UPPER(CONCAT('%', :kw, '%'))
-        )
-        ORDER BY COALESCE(s.rating, 0) DESC
-    """)
+    SELECT s
+    FROM Store s
+    WHERE (
+           UPPER(s.category1) LIKE UPPER(CONCAT('%', :kw, '%'))
+        OR UPPER(s.category2) LIKE UPPER(CONCAT('%', :kw, '%'))
+        OR UPPER(s.category3) LIKE UPPER(CONCAT('%', :kw, '%'))
+        OR UPPER(s.category4) LIKE UPPER(CONCAT('%', :kw, '%'))
+    )
+    ORDER BY
+      (
+        CASE WHEN UPPER(s.category2) = UPPER(:kw) THEN 120 ELSE 0 END +
+        CASE WHEN UPPER(s.category3) = UPPER(:kw) THEN 110 ELSE 0 END +
+        CASE WHEN UPPER(s.category4) = UPPER(:kw) THEN 100 ELSE 0 END +
+        CASE WHEN UPPER(s.category1) = UPPER(:kw) THEN  90 ELSE 0 END +
+        CASE WHEN UPPER(s.category2) LIKE UPPER(CONCAT(:kw, '%')) THEN 35 ELSE 0 END +
+        CASE WHEN UPPER(s.category3) LIKE UPPER(CONCAT(:kw, '%')) THEN 30 ELSE 0 END +
+        CASE WHEN UPPER(s.category4) LIKE UPPER(CONCAT(:kw, '%')) THEN 25 ELSE 0 END +
+        CASE WHEN UPPER(s.category1) LIKE UPPER(CONCAT(:kw, '%')) THEN 20 ELSE 0 END
+      ) DESC,
+      (0.7 * COALESCE(s.rating, 3.8) + 0.3 * 3.8) DESC,
+      function('RAND')
+""")
     Page<Store> findByAnyCategoryOrderByRatingDesc(@Param("kw") String keyword, Pageable pageable);
 
 

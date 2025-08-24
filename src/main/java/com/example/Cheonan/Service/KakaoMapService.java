@@ -76,36 +76,5 @@ public class KakaoMapService {
         }
     }
 
-    /**
-     * 카카오 이미지 검색 API 호출 (장소명으로 1장 이미지 가져오기)
-     */
-    public String searchImage(String query) {
-        try {
-            UriComponentsBuilder builder = UriComponentsBuilder
-                    .fromHttpUrl("https://dapi.kakao.com/v2/search/image")
-                    .queryParam("query", query)
-                    .queryParam("size", 1)
-                    .queryParam("sort", "accuracy");
 
-            URI uri = builder.build(false).encode(StandardCharsets.UTF_8).toUri();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);
-
-            Map<String, Object> body = response.getBody();
-            if (body != null && body.containsKey("documents")) {
-                List<Map<String, Object>> docs = (List<Map<String, Object>>) body.get("documents");
-                if (!docs.isEmpty()) {
-                    return (String) docs.get(0).get("image_url");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 }

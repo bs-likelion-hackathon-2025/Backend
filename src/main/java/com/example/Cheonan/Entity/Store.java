@@ -35,6 +35,7 @@ public class Store {
     private String googleLink;
 
     private String phoneNumber;
+    private String description;
 
     // 카테고리들
     private String category1;

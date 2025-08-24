@@ -42,41 +42,52 @@ public class StoreRecommendService {
     );
 
     public List<Store> recommendByMultiIntentOrFallback(String reply, IntentResult intent) {
-        final int K_PER_CAT = 1;   // 후보 카테고리당 가져올 가게 수
-        final int LIMIT = 3;      // 최종 응답 수
+        final int LIMIT = 3;
+        final int K_PER_CAT_PRIMARY = 3; // 우선 버킷은 더 많이 땡겨오고
+        final int K_PER_CAT_OTHERS  = 2; // 나머지는 적당히
 
-        // 1) 의도에서 후보 모으기
+        // 후보 수집
         List<String> c2 = safeTop3(intent != null ? intent.getCategory2Candidates() : null);
         List<String> c3 = safeTop3(intent != null ? intent.getCategory3Candidates() : null);
         List<String> c4 = safeTop3(intent != null ? intent.getCategory4Candidates() : null);
-
-        // 2) 후보가 없으면 reply에서 규칙 기반 다중 추출
         if (c2.isEmpty() && c3.isEmpty() && c4.isEmpty()) {
-            List<String> extracted = extractMultipleCategoriesFromReply(reply, 3);
-            c2 = extracted;
+            c2 = extractMultipleCategoriesFromReply(reply, 3);
         }
 
-        // 3) 후보별 Top-K 조회
-        List<Store> fromC2 = fetchTopKPerKeyword(c2, K_PER_CAT);
-        List<Store> fromC3 = fetchTopKPerKeyword(c3, K_PER_CAT);
-        List<Store> fromC4 = fetchTopKPerKeyword(c4, K_PER_CAT);
+        // 1순위 키워드 선정: c2 첫 항목을 기본 1순위로
+        String primaryKw = !c2.isEmpty() ? c2.get(0) : (!c3.isEmpty() ? c3.get(0) : (!c4.isEmpty() ? c4.get(0) : null));
 
-        // 4) 라운드로빈으로 섞어서 다양성 확보
-        List<Store> mixed = interleaveDistinct(List.of(fromC2, fromC3, fromC4), LIMIT);
+        // 버킷별 조회(우선 버킷은 더 많이)
+        List<Store> bPrimary = (primaryKw != null)
+                ? storeRepository.findByAnyCategoryOrderByRatingDesc(primaryKw, PageRequest.of(0, K_PER_CAT_PRIMARY)).getContent()
+                : List.of();
 
-        // 5) 부족하면 category1 또는 reply 키워드로 백필
-        if (mixed.size() < LIMIT) {
-            String c1 = (intent != null && notBlank(intent.getCategory1()))
-                    ? normalizeCategory(intent.getCategory1())
-                    : null;
-            if (c1 != null) {
-                List<Store> backfill = storeRepository
-                        .findByAnyCategoryOrderByRatingDesc(c1, PageRequest.of(0, LIMIT))
-                        .getContent();
-                mixed = backfillDistinctAppend(mixed, backfill, LIMIT);
-            }
+        // 나머지 키워드들 모아서 한 버킷으로
+        List<String> otherKws = new ArrayList<>();
+        for (int i = 0; i < c2.size(); i++) if (!c2.get(i).equals(primaryKw)) otherKws.add(c2.get(i));
+        otherKws.addAll(c3);
+        otherKws.addAll(c4);
+
+        List<Store> bOthers = new ArrayList<>();
+        for (String kw : safeTop3(otherKws)) {
+            bOthers.addAll(storeRepository
+                    .findByAnyCategoryOrderByRatingDesc(kw, PageRequest.of(0, K_PER_CAT_OTHERS))
+                    .getContent());
         }
 
+        // 버킷 목록: 0번=우선, 1번=나머지, 2번=백업(없으면 빈 리스트)
+        List<Store> bBackup = List.of(); // 필요하면 넣기
+        List<List<Store>> buckets = List.of(bPrimary, bOthers, bBackup);
+
+        // 가중 라운드 로빈: 우선 버킷을 2배
+        int[] pattern = {0, 0, 1, 2}; // 0을 두 번
+        List<Store> mixed = interleaveDistinctWeighted(buckets, pattern, LIMIT);
+
+        // 모자라면 primary로 백필
+        if (mixed.size() < LIMIT && primaryKw != null) {
+            var fill = storeRepository.findByAnyCategoryOrderByRatingDesc(primaryKw, PageRequest.of(0, LIMIT)).getContent();
+            mixed = backfillDistinctAppend(mixed, fill, LIMIT);
+        }
         return mixed;
     }
 
@@ -93,24 +104,33 @@ public class StoreRecommendService {
         return acc;
     }
 
-    private List<Store> interleaveDistinct(List<List<Store>> buckets, int limit) {
+    private List<Store> interleaveDistinctWeighted(List<List<Store>> buckets, int[] pattern, int limit) {
         List<Store> out = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
-        int i = 0;
+        int[] idx = new int[buckets.size()]; // 각 버킷에서 어디까지 꺼냈는지
+
+        int p = 0;
         while (out.size() < limit) {
-            boolean progressed = false;
-            for (List<Store> b : buckets) {
-                if (i < b.size()) {
-                    Store s = b.get(i);
-                    if (s.getId() != null && seen.add(s.getId())) {
-                        out.add(s);
-                        progressed = true;
-                        if (out.size() >= limit) break;
-                    }
+            int b = pattern[p % pattern.length]; // 이번에 뽑을 버킷 인덱스
+            if (b < buckets.size()) {
+                List<Store> bucket = buckets.get(b);
+                // 다음 유효 아이템을 찾는다(중복은 건너뜀)
+                while (idx[b] < bucket.size() && (bucket.get(idx[b]).getId() == null ||
+                        !seen.add(bucket.get(idx[b]).getId()))) {
+                    idx[b]++;
+                }
+                if (idx[b] < bucket.size()) {
+                    out.add(bucket.get(idx[b]++));
+                    if (out.size() >= limit) break;
                 }
             }
-            if (!progressed) break;
-            i++;
+            p++;
+            // 모든 버킷이 더 이상 꺼낼 게 없으면 종료
+            boolean anyLeft = false;
+            for (int i = 0; i < buckets.size(); i++) {
+                if (idx[i] < buckets.get(i).size()) { anyLeft = true; break; }
+            }
+            if (!anyLeft) break;
         }
         return out;
     }
