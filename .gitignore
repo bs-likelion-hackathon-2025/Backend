@@ -5,6 +5,32 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+#
+src/main/java/com/example/Cheonan/Dto/ChatResponse.java
+src/main/java/com/example/Cheonan/Repository/ChatMessageRepository.java
+src/main/java/com/example/Cheonan/Controller/StoreController.java
+src/main/java/com/example/Cheonan/Controller/WeatherController.java
+src/main/java/com/example/Cheonan/Dto/ChatMessage.java
+src/main/java/com/example/Cheonan/Dto/ParseWeatherResponse.java
+src/main/java/com/example/Cheonan/Dto/WeatherResponse.java
+src/main/java/com/example/Cheonan/Service/StoreService.java
+src/main/java/com/example/Cheonan/Service/WeatherService.java
+src/main/java/com/example/Cheonan/Util/WeatherClient.java
+
+# 데이터파일
+src/main/resources/천안 가게 데이터(v3).csv
+
+.DS_Store
+#환경변수파일
+.env
+#IDE 설정 파일
+.idea/
+*.iml
+
+# 빌드 결과물
+/build/
+/out/
+
 ### STS ###
 .apt_generated
 .classpath
@@ -35,3 +61,4 @@ out/
 
 ### VS Code ###
 .vscode/
+
